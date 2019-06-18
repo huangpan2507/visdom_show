@@ -1,0 +1,40 @@
+import visdom
+import torch
+
+# 新建一个连接客户端
+# visdom同时支持pytorch的tensor和numpy的ndrray两种数据结构，但不支持pytorch的int，float等类型
+# 因此每次传入时需要现将数据转化为上述两种
+# 指定env = u'test1'，默认端口为8097， host是'localhost' vis是一个客户端对象
+
+vis = visdom.Visdom(env=u'test1')
+
+x = torch.arange(1, 30, 0.01)
+y = torch.sin(x)
+
+# win 用于指定pane 的名字，如果不指定，系统将自动分配一个新的pane。而且若两次名字相同，则会覆盖
+# opts 用来可视话配置，接受一个字典，常见的option包括 title， xlabel， ylabel， width等。主要用于设置pane的显示格式
+vis.line(X=x, Y=y, win='sinx', opts={'title': 'y=sin(x)'})
+
+for ii in range(0, 10):  # y = x
+    x = torch.Tensor([ii])
+    y = x
+    # 使用append来避免覆盖之前的数值
+    vis.line(X=x, Y=y, win='polynomial', update='append' if ii > 0
+             else None)
+
+    # updataTrace新增一条线
+    x = torch.arange(0, 9, 0.1)
+    y = (x**2)/9
+    vis.line(X=x, Y=y, win='polynomial', name='this is a new Trace', update=True,
+             opts={'title': 'y=x^2 /9'})
+
+
+# 可视化一张随机的黑白图片
+vis.image(torch.randn(64, 64).numpy())
+
+# 可视化一张随机的彩色图片
+vis.image(torch.randn(3, 64, 64).numpy(), win='random2')
+
+# 可视化36张随机的彩色图片，每一行6张
+vis.images(torch.randn(36, 3, 64, 64).numpy(), nrow=6, win='random3', opts={
+    'title': 'random_imgs'})
